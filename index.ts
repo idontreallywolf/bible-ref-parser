@@ -142,9 +142,6 @@ export function replaceRomanNumbers(query: string) {
 
 
 export function isValidQuery(q: string) {
-    // TODO: ((\d)|[Ii]{,3})+(\s*)([^a-z])(\s*)([a-z]+)(\s*)([^a-z0-9 ])
-    // IIII Genesis
-    // John "#"# 4:1#"€#€"
     return (
         !(new RegExp("[^a-z0-9 ,–;—:-]|I{4,}", "i").test(q)) &&
         !(new RegExp("([,:-]{2,})|(:,)|(,:)|(-:)|(:-)|(-,)|(,-)").test(q))
