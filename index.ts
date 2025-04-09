@@ -123,21 +123,23 @@ export function parseBook(query: string) {
 
 export function replaceRomanNumbers(query: string) {
     let romanNumber = 0
+    let idx
 
     for (let i = 0; i < query.length; i++) {
-        if (query[i] === "I") { romanNumber += 1 }
+        if (query[i] === "I") {
+            romanNumber += 1
+            continue
+        }
 
-        // break: because highest number
-        // in canon books is 3,
-        // which appears in "III John"
-        if (i == 3) { break }
+        idx = (query[i] === " ") ? (i + 1) : i
+        break
     }
 
     if (romanNumber === 0) {
         return query
     }
 
-    return `${romanNumber} ${query.slice(romanNumber + 1)}`
+    return `${romanNumber} ${query.slice(idx)}`
 }
 
 

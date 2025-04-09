@@ -45,6 +45,7 @@ test('isValidPositiveNumber() should return false for any integer(n <= 0) as wel
 
 test('replaceRomanNumbers() should replace "I" with 1, "II" with 2 and "III" with 3', async (t) => {
     const cases = [
+        { input: "Peter",           expected: "Peter" },
         { input: "I Peter",         expected: "1 Peter" },
         { input: "I Timothy",       expected: "1 Timothy" },
         { input: "I Corinthians",   expected: "1 Corinthians" },
@@ -62,6 +63,7 @@ test('replaceRomanNumbers() should replace "I" with 1, "II" with 2 and "III" wit
         { input: "II Kings",        expected: "2 Kings" },
 
         { input: "III John",        expected: "3 John" },
+        { input: "IIJohn",          expected: "2 John" }
     ]
 
     for (const { input, expected } of cases) {
