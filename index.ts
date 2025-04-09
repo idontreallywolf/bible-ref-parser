@@ -62,54 +62,66 @@ const books = [
 const QUERY_SEPARATOR = ";"
 
 
-export const PRIORITY = Object.freeze({
-    VERSE: 0,
-    CHAPTER: 1
-})
+export type BookData = {
+    book: string,
+    references: ChapterData[]
+}
 
 
-export function parseQuery(q) {
-    const bookQueries = splitQueryByBooks(q)
+export type ChapterData = {
+    chapter: number,
+    verses: VerseRange[]
+}
 
-    let queries = []
 
-    for (const query of bookQueries) {
-        queries.push(parseBook(query))
+export type VerseRange = {
+    from: number,
+    to: number | undefined
+}
+
+
+export function parseQuery(query: string) {
+    const bookQueries = splitQueryByBooks(query)
+
+    let bookDataList: BookData[] = []
+
+    for (const bookQuery of bookQueries) {
+        if (!isValidQuery(query)) {
+            continue
+        }
+
+        bookDataList.push(parseBook(bookQuery))
     }
 
-    return queries
+    return bookDataList
 }
 
 
-export function splitQueryByBooks(q) {
-    return q.split(QUERY_SEPARATOR).map(qry => qry.trim())
+export function splitQueryByBooks(query: string) {
+    return query
+        .split(QUERY_SEPARATOR)
+        .map(qry => qry.trim())
+        .filter(qry => qry.length !== 0)
 }
 
 
-export function isValidPositiveNumber(n) {
-    n = parseInt(n)
-    return Number.isInteger(n) || n > 0
+export function isValidPositiveNumber(n: string) {
+    let _n = parseInt(n)
+    return Number.isInteger(_n) && _n > 0
 }
 
 
-function parseBook(query) {
+export function parseBook(query: string) {
     query = replaceRomanNumbers(query)
 
-    if (!isValidQuery(query)) {
-        throw new Error("Invalid query")
-    }
-
     let { bookName, chapterBeginIndex } = parseBookName(query)
+    let references = parseReferences(query.slice(chapterBeginIndex))
 
-    query = query.slice(chapterBeginIndex)
-
-    // 1:1-2,4-5,2:
-    let references = parseReferences(query)
     return { book: bookName, references }
 }
 
 
-export function replaceRomanNumbers(query) {
+export function replaceRomanNumbers(query: string) {
     let romanNumber = 0
 
     for (let i = 0; i < query.length; i++) {
@@ -129,22 +141,29 @@ export function replaceRomanNumbers(query) {
 }
 
 
-export function isValidQuery(q) {
+export function isValidQuery(q: string) {
+    // TODO: ((\d)|[Ii]{,3})+(\s*)([^a-z])(\s*)([a-z]+)(\s*)([^a-z0-9 ])
+    // IIII Genesis
+    // John "#"# 4:1#"€#€"
     return (
-        !(new RegExp("[^a-z0-9 ,–;—:-]", "i").test(q)) &&
+        !(new RegExp("[^a-z0-9 ,–;—:-]|I{4,}", "i").test(q)) &&
         !(new RegExp("([,:-]{2,})|(:,)|(,:)|(-:)|(:-)|(-,)|(,-)").test(q))
     )
 }
 
 
-export function parseBookName(query) {
+export function parseBookName(query: string) {
     let bookName = ""
-    let chapterBeginIndex = undefined
+    let chapterBeginIndex = 0
 
     for (let i = 0; i < query.length; i++) {
         const char = query[i]
+        if (char == " ") {
+            continue
+        }
+
         if (i === 0 && isValidPositiveNumber(char)) {
-            bookName += char
+            bookName += `${char} `
             continue
         }
 
@@ -165,10 +184,8 @@ export function parseBookName(query) {
 }
 
 
-export function parseReferences(query) {
-    const isVersePriority = queryPriorityIsByVerse(query)
-
-    if (isVersePriority) {
+export function parseReferences(query: string) {
+    if (queryPriorityIsByVerse(query)) {
         return parseReferenceWithVersePriority(query)
     }
 
@@ -176,10 +193,10 @@ export function parseReferences(query) {
 }
 
 
-export function parseReferenceWithVersePriority(query) {
-    let refs = []
+export function parseReferenceWithVersePriority(query: string) {
+    let refs: ChapterData[] = []
     let temp = ""
-    let currentChapter = undefined
+    let currentChapter: ChapterData | undefined = undefined
 
     for (let i = 0; i < query.length; i++) {
         if (query[i] === " ") { continue }
@@ -187,7 +204,7 @@ export function parseReferenceWithVersePriority(query) {
         if (query[i] === ":") {
             if (currentChapter) {
                 refs.push(currentChapter)
-                currentChapter = {}
+                currentChapter = undefined
             }
 
             currentChapter = {
@@ -206,10 +223,12 @@ export function parseReferenceWithVersePriority(query) {
         }
 
         if (query[i] === ",") {
-            currentChapter.verses.push(parseVerseRange(temp))
+            currentChapter?.verses.push(parseVerseRange(temp))
 
             if (i === query.length - 1) {
-                refs.push(currentChapter)
+                if (currentChapter) {
+                    refs.push(currentChapter)
+                }
                 return refs
             }
 
@@ -220,7 +239,7 @@ export function parseReferenceWithVersePriority(query) {
         temp += query[i]
     }
 
-    if (temp.length > 0) {
+    if (temp.length > 0 && currentChapter) {
         currentChapter.verses.push(parseVerseRange(temp))
         refs.push(currentChapter)
     }
@@ -229,10 +248,10 @@ export function parseReferenceWithVersePriority(query) {
 }
 
 
-export function parseReferenceWithChapterPriority(query) {
-    const refs = []
+export function parseReferenceWithChapterPriority(query: string) {
+    const refs: ChapterData[] = []
     let temp = ""
-    let currentChapter = undefined
+    let currentChapter: ChapterData | undefined = undefined
     let lookingForVerse = false
 
     for (let i = 0; i < query.length; i++) {
@@ -249,15 +268,15 @@ export function parseReferenceWithChapterPriority(query) {
 
         if (char === ",") {
             if (lookingForVerse) {
-                currentChapter.verses.push(parseVerseRange(temp))
-                refs.push(currentChapter)
-                currentChapter = {}
+                currentChapter!.verses.push(parseVerseRange(temp))
+                refs.push(currentChapter!)
+                currentChapter = undefined
                 lookingForVerse = false
                 temp = ""
                 continue
             }
 
-            currentChapter = {}
+            currentChapter = undefined
             refs.push({ chapter: parseChapterNumber(temp), verses: [] })
             temp = ""
             continue
@@ -268,19 +287,21 @@ export function parseReferenceWithChapterPriority(query) {
 
     if (temp.length > 0) {
         if (lookingForVerse) {
-            currentChapter.verses.push(parseVerseRange(temp))
+            currentChapter!.verses.push(parseVerseRange(temp))
         } else {
             currentChapter = { chapter: parseChapterNumber(temp), verses: [] }
         }
 
-        refs.push(currentChapter)
+        if (currentChapter) {
+            refs.push(currentChapter)
+        }
     }
 
     return refs;
 }
 
 
-export function queryPriorityIsByVerse(query) {
+export function queryPriorityIsByVerse(query: string) {
     const firstCommaIndex = query.indexOf(",")
     const firstColonIndex = query.indexOf(":")
 
@@ -298,7 +319,7 @@ export function queryPriorityIsByVerse(query) {
 }
 
 
-export function parseChapterNumber(s) {
+export function parseChapterNumber(s: string) {
     if (!isValidPositiveNumber(s)) {
         throw new Error(`Invalid chapter number: ${s}`)
     }
@@ -307,13 +328,13 @@ export function parseChapterNumber(s) {
 }
 
 
-export function parseVerseRange(s) {
-    s = s.split("-")
+export function parseVerseRange(rangeString: string): VerseRange {
+    let rangeParts = rangeString.split("-")
 
     return {
-        from: parseInt(s[0]),
-        to: (s.length === 1 || s[1].length === 0)
+        from: parseInt(rangeParts[0]),
+        to: (rangeParts.length === 1 || rangeParts[1].length === 0)
             ? undefined
-            : parseInt(s[1])
+            : parseInt(rangeParts[1])
     }
 }
