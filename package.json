@@ -9,8 +9,8 @@
     "build": "rm -rf ./build && npx tsc"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "https://github.com/idontreallywolf",
+  "license": "MIT",
   "description": "",
   "devDependencies": {
     "@types/node": "^22.14.0",
