@@ -14,13 +14,17 @@ import {
     parseReferences,
     parseVerseRange,
     parseBook,
-} from '../index'
+    parseQuery,
+} from '../src/index'
 
 
 test('splitQueryByBooks() should return a list of propertly split queries', async (t) => {
     const cases = [
         { input: "Genesis 1:1;    Luke 10:2-4   ", expected: ["Genesis 1:1", "Luke 10:2-4"] },
-        { input: "Genesis 1:1;Luke 10:2-4 ;Mark 3:1-2,4:2;Matthew 6:7", expected: ["Genesis 1:1", "Luke 10:2-4", "Mark 3:1-2,4:2", "Matthew 6:7"] },
+        {
+            input: "Genesis 1:1;Luke 10:2-4 ;Mark 3:1-2,4:2;Matthew 6:7",
+            expected: ["Genesis 1:1", "Luke 10:2-4", "Mark 3:1-2,4:2", "Matthew 6:7"]
+        }
     ]
 
     for (const { input, expected } of cases) {
@@ -109,7 +113,8 @@ test('isValidQuery(q) should return true for valid queries', async (t) => {
         "Genesis 1:1",              "Genesis 1:1-2",
         "Genesis 1:1-2,4",          "Genesis 1:1-2,4-5",
         "Genesis 1:1-2,4-5,8-9",    "Genesis 1:1-2,4-5,2:3,5-6",
-        "Genesis 1; Exodus 1",      "I Peter 1:1", "II Peter 1:1",
+        "Genesis 1; Exodus 1",      "Genesis 1:10-12",
+        "I Peter 1:1", "II Peter 1:1",
         "1 John 2:4;2 Peter 5:1-2", "III Peter",
         "1 Kings1:2", "1Kings1:1"
     ]
@@ -128,7 +133,8 @@ test('isValidQuery(q) should return false for invalid queries', async (t) => {
         "Genesis 1:,1-2,4-5",   "Genesis 1,:1-2,4-5",
         "Genesis 1,:,1-2,4-5",  "Genesis 1,-1-2,4-5",
         "Genesis 1,-1-2,4-5",   "John# 1:1", "Mark $1:2",
-        "IIII Peter 1:1"
+        "IIII Peter 1:1",       "!\\ _/**;:_--:;:",
+        "##", "#!\"@,",
     ]
 
     for (const _test of tests) {
@@ -251,5 +257,51 @@ test('parseBook() should return the expected bookData', async (t) => {
 
     for (const { input, expected } of cases) {
         expect(parseBook(input)).toStrictEqual(expected)
+    }
+})
+
+
+test('parseQuery() should return the expected bookData[]', async (t) => {
+    const cases = [
+        { 
+            input: "1Kings1:2;IIIJohn1",
+            expected: [
+                {
+                    book: "1 Kings",
+                    references: [
+                        { chapter: 1, verses: [{ from: 2, to: undefined }] }
+                    ]
+                },
+                { book: "3 John", references: [] }
+            ]
+        },
+
+        {
+            input: "III John 1:1-2;Genesis 1:10-12",
+            expected: [
+                {
+                    book: "3 John",
+                    references: [{ chapter: 1, verses: [{ from: 1, to: 2 }] }]
+                },
+                {
+                    book: "Genesis",
+                    references: [{ chapter: 1, verses: [{ from: 10, to: 12 }] }]
+                }
+            ]
+        },
+
+        {
+            input: ";##;#!\"@,;Genesis 1:10-12",
+            expected: [
+                {
+                    book: "Genesis",
+                    references: [{ chapter: 1, verses: [{ from: 10, to: 12 }] }]
+                }
+            ]
+        }
+    ]
+
+    for (const { input, expected } of cases) {
+        expect(parseQuery(input)).toStrictEqual(expected)
     }
 })

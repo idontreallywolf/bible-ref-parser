@@ -1,11 +1,12 @@
 {
   "name": "bible-ref-parser",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "./build/index.js",
   "type": "module",
   "scripts": {
+    "start": "npx tsx .",
     "test": "npx vitest run",
-    "build": "npx tsc index.ts"
+    "build": "rm -rf ./build && npx tsc"
   },
   "keywords": [],
   "author": "",
@@ -13,6 +14,8 @@
   "description": "",
   "devDependencies": {
     "@types/node": "^22.14.0",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.19.3",
     "typescript": "^5.8.3",
     "vitest": "^3.1.1"
   }
