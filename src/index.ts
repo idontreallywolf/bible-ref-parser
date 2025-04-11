@@ -36,7 +36,7 @@ export function parseQuery(query: string) {
 }
 
 
-export function splitQueryByBooks(query: string) {
+function splitQueryByBooks(query: string) {
     return query
         .split(QUERY_SEPARATOR)
         .map(qry => qry.trim())
@@ -44,13 +44,13 @@ export function splitQueryByBooks(query: string) {
 }
 
 
-export function isValidPositiveNumber(n: string) {
+function isValidPositiveNumber(n: string) {
     let _n = parseInt(n)
     return Number.isInteger(_n) && _n > 0
 }
 
 
-export function parseBook(query: string) {
+function parseBook(query: string) {
     query = replaceRomanNumbers(query)
 
     let { bookName, chapterBeginIndex } = parseBookName(query)
@@ -60,7 +60,7 @@ export function parseBook(query: string) {
 }
 
 
-export function replaceRomanNumbers(query: string) {
+function replaceRomanNumbers(query: string) {
     let romanNumber = 0
     let idx
 
@@ -82,7 +82,7 @@ export function replaceRomanNumbers(query: string) {
 }
 
 
-export function isValidQuery(q: string) {
+function isValidQuery(q: string) {
     return (
         !(new RegExp("[^a-z0-9 ,–;—:-]|I{4,}", "i").test(q)) &&
         !(new RegExp("([,:-]{2,})|(:,)|(,:)|(-:)|(:-)|(-,)|(,-)").test(q))
@@ -90,7 +90,7 @@ export function isValidQuery(q: string) {
 }
 
 
-export function parseBookName(query: string) {
+function parseBookName(query: string) {
     let bookName = ""
     let chapterBeginIndex = 0
 
@@ -122,7 +122,7 @@ export function parseBookName(query: string) {
 }
 
 
-export function parseReferences(query: string) {
+function parseReferences(query: string) {
     if (queryPriorityIsByVerse(query)) {
         return parseReferenceWithVersePriority(query)
     }
@@ -131,7 +131,7 @@ export function parseReferences(query: string) {
 }
 
 
-export function parseReferenceWithVersePriority(query: string) {
+function parseReferenceWithVersePriority(query: string) {
     let refs: ChapterData[] = []
     let temp = ""
     let currentChapter: ChapterData | undefined = undefined
@@ -186,7 +186,7 @@ export function parseReferenceWithVersePriority(query: string) {
 }
 
 
-export function parseReferenceWithChapterPriority(query: string) {
+function parseReferenceWithChapterPriority(query: string) {
     const refs: ChapterData[] = []
     let temp = ""
     let currentChapter: ChapterData | undefined = undefined
@@ -239,7 +239,7 @@ export function parseReferenceWithChapterPriority(query: string) {
 }
 
 
-export function queryPriorityIsByVerse(query: string) {
+function queryPriorityIsByVerse(query: string) {
     const firstCommaIndex = query.indexOf(",")
     const firstColonIndex = query.indexOf(":")
 
@@ -257,7 +257,7 @@ export function queryPriorityIsByVerse(query: string) {
 }
 
 
-export function parseChapterNumber(s: string) {
+function parseChapterNumber(s: string) {
     if (!isValidPositiveNumber(s)) {
         throw new Error(`Invalid chapter number: ${s}`)
     }
@@ -266,7 +266,7 @@ export function parseChapterNumber(s: string) {
 }
 
 
-export function parseVerseRange(rangeString: string): VerseRange {
+function parseVerseRange(rangeString: string): VerseRange {
     let rangeParts = rangeString.split("-")
 
     return {
@@ -275,4 +275,18 @@ export function parseVerseRange(rangeString: string): VerseRange {
             ? undefined
             : parseInt(rangeParts[1])
     }
+}
+
+export const Testing = {
+    isValidPositiveNumber,
+    isValidQuery,
+    splitQueryByBooks,
+    parseBookName,
+    replaceRomanNumbers,
+    queryPriorityIsByVerse,
+    parseReferenceWithVersePriority,
+    parseReferenceWithChapterPriority,
+    parseReferences,
+    parseVerseRange,
+    parseBook,
 }

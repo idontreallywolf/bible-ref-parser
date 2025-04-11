@@ -3,17 +3,7 @@
 import { expect, test } from 'vitest'
 
 import {
-    isValidPositiveNumber,
-    isValidQuery,
-    splitQueryByBooks,
-    parseBookName,
-    replaceRomanNumbers,
-    queryPriorityIsByVerse,
-    parseReferenceWithVersePriority,
-    parseReferenceWithChapterPriority,
-    parseReferences,
-    parseVerseRange,
-    parseBook,
+    Testing,
     parseQuery,
 } from '../src/index'
 
@@ -28,21 +18,21 @@ test('splitQueryByBooks() should return a list of propertly split queries', asyn
     ]
 
     for (const { input, expected } of cases) {
-        expect(splitQueryByBooks(input)).toStrictEqual(expected)
+        expect(Testing.splitQueryByBooks(input)).toStrictEqual(expected)
     }
 })
 
 
 test('isValidPositiveNumber() should return true for any non-0 positive integer, in a string', async (t) => {
     for (const i of ["1","2","10","15","100","150"]) {
-        expect(isValidPositiveNumber(i)).toBe(true)
+        expect(Testing.isValidPositiveNumber(i)).toBe(true)
     }
 })
 
 
 test('isValidPositiveNumber() should return false for any integer(n <= 0) as well as non-numeric characters, in a string', async (t) => {
     for (const i of ["0","-1","a","-10","-500"]) {
-        expect(isValidPositiveNumber(i), `[Failed for ${i}]`).toBe(false)
+        expect(Testing.isValidPositiveNumber(i), `[Failed for ${i}]`).toBe(false)
     }
 })
 
@@ -71,7 +61,7 @@ test('replaceRomanNumbers() should replace "I" with 1, "II" with 2 and "III" wit
     ]
 
     for (const { input, expected } of cases) {
-        expect(replaceRomanNumbers(input)).toStrictEqual(expected)
+        expect(Testing.replaceRomanNumbers(input)).toStrictEqual(expected)
     }
 })
 
@@ -85,7 +75,7 @@ test('replaceRomanNumbers() should return the original string if no book number 
     ]
 
     for (const { input, expected } of cases) {
-        expect(replaceRomanNumbers(input)).toStrictEqual(expected)
+        expect(Testing.replaceRomanNumbers(input)).toStrictEqual(expected)
     }
 })
 
@@ -102,7 +92,7 @@ test('parseBookName() should return the book name (including sequence nr) along 
     ]
 
     for (const { input, expected } of cases) {
-        expect(parseBookName(input)).toStrictEqual(expected)
+        expect(Testing.parseBookName(input)).toStrictEqual(expected)
     }
 })
 
@@ -120,7 +110,7 @@ test('isValidQuery(q) should return true for valid queries', async (t) => {
     ]
 
     for (const _test of tests) {
-        expect(isValidQuery(_test)).toBe(true)
+        expect(Testing.isValidQuery(_test)).toBe(true)
     }
 });
 
@@ -138,7 +128,7 @@ test('isValidQuery(q) should return false for invalid queries', async (t) => {
     ]
 
     for (const _test of tests) {
-        expect(isValidQuery(_test)).toBe(false)
+        expect(Testing.isValidQuery(_test)).toBe(false)
     }
 });
 
@@ -153,7 +143,7 @@ test('parseVerseRange() should return expected range object, e.g { from: N, to: 
 
     for (const { input, expected } of cases) {
         // assert.deepStrictEqual(parseVerseRange(input), expected, `Failed for input: ${input}`);
-        expect(parseVerseRange(input)).toStrictEqual(expected)
+        expect(Testing.parseVerseRange(input)).toStrictEqual(expected)
     }
 });
 
@@ -166,7 +156,7 @@ test('queryPriorityIsByVerse() should return the expected boolean', async (t) =>
 
     for (const { input, expected } of cases) {
         // assert.equal(queryPriorityIsByVerse(input), expected, `Failed for input: ${input}`);
-        expect(queryPriorityIsByVerse(input)).toBe(expected)
+        expect(Testing.queryPriorityIsByVerse(input)).toBe(expected)
     }
 })
 
@@ -185,7 +175,7 @@ test('parseReferenceWithVersePriority() should return a list of correct referenc
 
     for (const { input, expected } of cases) {
         // assert.deepStrictEqual(parseReferenceWithVersePriority(input), expected, `Failed for input: ${input}`);
-        expect(parseReferenceWithVersePriority(input), `Case (${input})`).toStrictEqual(expected)
+        expect(Testing.parseReferenceWithVersePriority(input), `Case (${input})`).toStrictEqual(expected)
     }
 })
 
@@ -202,7 +192,7 @@ test('parseReferenceWithChapterPriority() should return a list of correct refere
 
     for (const { input, expected } of cases) {
         // assert.deepStrictEqual(parseReferenceWithChapterPriority(input), expected, `Failed for input: ${input}`);
-        expect(parseReferenceWithChapterPriority(input)).toStrictEqual(expected)
+        expect(Testing.parseReferenceWithChapterPriority(input)).toStrictEqual(expected)
     }
 })
 
@@ -235,7 +225,7 @@ test('parseReferences() should return a list of correct reference objects, based
     ]
 
     for (const { input, expected } of cases) {
-        expect(parseReferences(input)).toStrictEqual(expected)
+        expect(Testing.parseReferences(input)).toStrictEqual(expected)
     }
 })
 
@@ -256,7 +246,7 @@ test('parseBook() should return the expected bookData', async (t) => {
     ]
 
     for (const { input, expected } of cases) {
-        expect(parseBook(input)).toStrictEqual(expected)
+        expect(Testing.parseBook(input)).toStrictEqual(expected)
     }
 })
 
