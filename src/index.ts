@@ -2,7 +2,7 @@ const QUERY_SEPARATOR = ";"
 
 
 export type BookData = {
-    book: string,
+    name: string,
     references: ChapterData[]
 }
 
@@ -56,7 +56,7 @@ function parseBook(query: string) {
     let { bookName, chapterBeginIndex } = parseBookName(query)
     let references = parseReferences(query.slice(chapterBeginIndex))
 
-    return { book: bookName, references }
+    return { name: bookName, references }
 }
 
 
