@@ -19,7 +19,7 @@ export type VerseRange = {
 }
 
 
-export function parseQuery(query: string) {
+export function parseQuery(query: string): BookData[] {
     const bookQueries = splitQueryByBooks(query)
 
     let bookDataList: BookData[] = []
@@ -50,7 +50,7 @@ function isValidPositiveNumber(n: string) {
 }
 
 
-function parseBook(query: string) {
+function parseBook(query: string): BookData {
     query = replaceRomanNumbers(query)
 
     let { bookName, chapterBeginIndex } = parseBookName(query)
