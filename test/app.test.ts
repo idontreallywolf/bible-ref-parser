@@ -7,6 +7,8 @@ import {
     parseQuery,
 } from '../src/index'
 
+import { books } from '../src/books'
+
 
 test('splitQueryByBooks() should return a list of propertly split queries', async (t) => {
     const cases = [
@@ -230,17 +232,40 @@ test('parseReferences() should return a list of correct reference objects, based
 })
 
 
+test('bookNameIsValid() should return false for books that are not in the list', async (t) => {
+    const books = [
+        "kebab", "pasta",
+        "idk", "jenesis",
+        "jon", "peer"
+    ]
+
+    for (const book of books) {
+        expect(Testing.bookNameIsValid(book)).toBe(false)
+    }
+})
+
+
+test('bookNameIsValid() should return true for books that are in the list', async (t) => {
+    for (const { name, aliases } of books) {
+        expect(Testing.bookNameIsValid(name)).toBe(true)
+        for (const alias of aliases) {
+            expect(Testing.bookNameIsValid(alias)).toBe(true)
+        }
+    }
+})
+
+
 test('parseBook() should return the expected bookData', async (t) => {
     const cases = [
         { input: "1Kings1:2", expected: {
-            book: "1 Kings",
+            name: "1 Kings",
             references: [
                 { chapter: 1, verses: [{ from: 2, to: undefined }] }
             ]
         }},
 
         { input: "III John 1", expected: {
-            book: "3 John",
+            name: "3 John",
             references: []
         }}
     ]
@@ -257,12 +282,12 @@ test('parseQuery() should return the expected bookData[]', async (t) => {
             input: "1Kings1:2;IIIJohn1",
             expected: [
                 {
-                    book: "1 Kings",
+                    name: "1 Kings",
                     references: [
                         { chapter: 1, verses: [{ from: 2, to: undefined }] }
                     ]
                 },
-                { book: "3 John", references: [] }
+                { name: "3 John", references: [] }
             ]
         },
 
@@ -270,11 +295,11 @@ test('parseQuery() should return the expected bookData[]', async (t) => {
             input: "III John 1:1-2;Genesis 1:10-12",
             expected: [
                 {
-                    book: "3 John",
+                    name: "3 John",
                     references: [{ chapter: 1, verses: [{ from: 1, to: 2 }] }]
                 },
                 {
-                    book: "Genesis",
+                    name: "Genesis",
                     references: [{ chapter: 1, verses: [{ from: 10, to: 12 }] }]
                 }
             ]
@@ -284,7 +309,7 @@ test('parseQuery() should return the expected bookData[]', async (t) => {
             input: ";##;#!\"@,;Genesis 1:10-12",
             expected: [
                 {
-                    book: "Genesis",
+                    name: "Genesis",
                     references: [{ chapter: 1, verses: [{ from: 10, to: 12 }] }]
                 }
             ]

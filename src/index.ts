@@ -1,5 +1,6 @@
-const QUERY_SEPARATOR = ";"
+import { books } from "./books.js"
 
+const QUERY_SEPARATOR = ";"
 
 export type BookData = {
     name: string,
@@ -29,7 +30,11 @@ export function parseQuery(query: string): BookData[] {
             continue
         }
 
-        bookDataList.push(parseBook(bookQuery))
+        const bookData = parseBook(bookQuery)
+
+        if (bookData) {
+            bookDataList.push(bookData)
+        }
     }
 
     return bookDataList
@@ -50,10 +55,15 @@ function isValidPositiveNumber(n: string) {
 }
 
 
-function parseBook(query: string): BookData {
+function parseBook(query: string): BookData | null {
     query = replaceRomanNumbers(query)
 
     let { bookName, chapterBeginIndex } = parseBookName(query)
+
+    if (!bookNameIsValid(bookName)) {
+        return null
+    }
+
     let references = parseReferences(query.slice(chapterBeginIndex))
 
     return { name: bookName, references }
@@ -119,6 +129,16 @@ function parseBookName(query: string) {
         bookName,
         chapterBeginIndex
     }
+}
+
+function bookNameIsValid(bookName: string) {
+    for (const { name, aliases } of books) {
+        if (name == bookName || aliases.includes(bookName)) {
+            return true
+        }
+    }
+
+    return false
 }
 
 
@@ -288,5 +308,6 @@ export const Testing = {
     parseReferenceWithChapterPriority,
     parseReferences,
     parseVerseRange,
+    bookNameIsValid,
     parseBook,
 }

@@ -1,5 +1,5 @@
-[
-    { "name": "Genesis", "aliases": ["Gn","Gen"]},
+export const books = [
+    { "name": "Genesis", "aliases": ["Gn", "Gs", "Gen", "Gns"]},
     { "name": "Exodus", "aliases": ["Exod","Ex","Exo"]},
     { "name": "Leviticus", "aliases": ["Lv","Lev"]},
     { "name": "Numbers", "aliases": ["Nu","Num"]},
