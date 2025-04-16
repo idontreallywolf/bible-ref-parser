@@ -1,5 +1,7 @@
 # Bible Reference Parser
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 `bible-ref-parser` is a Node.js package that parses Bible references into structured objects. It supports complex references such as `Genesis 1:1-2; II Peter; John 1:1,3-5,8` and converts them into accessible data formats.
 
 
@@ -44,4 +46,12 @@ console.log(result);
     }
 ]
 ```
+
+## Contributing
+
+Contributions are welcome! Feel free to open issues or submit pull requests.
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
