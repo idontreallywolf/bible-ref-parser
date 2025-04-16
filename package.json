@@ -1,5 +1,5 @@
 {
-  "name": "bible-ref-parser",
+  "name": "@idrw/bible-ref-parser",
   "version": "1.0.0",
   "main": "./build/index.js",
   "type": "module",
