@@ -1,4 +1,6 @@
-node_modules
+node_modules/
 .vscode/**/*
-build/**/*
+build/
 temp
+*.log
+.DS_Store
