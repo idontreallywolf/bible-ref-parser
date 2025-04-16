@@ -1,5 +1,3 @@
-// import assert from 'node:assert'
-// import test from 'node:test'
 import { expect, test } from 'vitest'
 
 import {
@@ -144,7 +142,6 @@ test('parseVerseRange() should return expected range object, e.g { from: N, to: 
     ];
 
     for (const { input, expected } of cases) {
-        // assert.deepStrictEqual(parseVerseRange(input), expected, `Failed for input: ${input}`);
         expect(Testing.parseVerseRange(input)).toStrictEqual(expected)
     }
 });
@@ -157,7 +154,6 @@ test('queryPriorityIsByVerse() should return the expected boolean', async (t) =>
     ]
 
     for (const { input, expected } of cases) {
-        // assert.equal(queryPriorityIsByVerse(input), expected, `Failed for input: ${input}`);
         expect(Testing.queryPriorityIsByVerse(input)).toBe(expected)
     }
 })
@@ -176,7 +172,6 @@ test('parseReferenceWithVersePriority() should return a list of correct referenc
     ]
 
     for (const { input, expected } of cases) {
-        // assert.deepStrictEqual(parseReferenceWithVersePriority(input), expected, `Failed for input: ${input}`);
         expect(Testing.parseReferenceWithVersePriority(input), `Case (${input})`).toStrictEqual(expected)
     }
 })
@@ -193,7 +188,6 @@ test('parseReferenceWithChapterPriority() should return a list of correct refere
     ]
 
     for (const { input, expected } of cases) {
-        // assert.deepStrictEqual(parseReferenceWithChapterPriority(input), expected, `Failed for input: ${input}`);
         expect(Testing.parseReferenceWithChapterPriority(input)).toStrictEqual(expected)
     }
 })
