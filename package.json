@@ -20,7 +20,7 @@
   "bugs": {
     "url": "https://github.com/idontreallywolf/bible-ref-parser/issues"
   },
-  "files": ["build", "src"],
+  "files": ["build"],
   "types": "./build/index.d.ts",
   "devDependencies": {
     "@types/node": "^22.14.0",

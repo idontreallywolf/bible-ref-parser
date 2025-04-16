@@ -60,13 +60,14 @@ function parseBook(query: string): BookData | null {
 
     let { bookName, chapterBeginIndex } = parseBookName(query)
 
-    if (!bookNameIsValid(bookName)) {
+    const validatedName = validateBookName(bookName)
+    if (!validatedName) {
         return null
     }
 
     let references = parseReferences(query.slice(chapterBeginIndex))
 
-    return { name: bookName, references }
+    return { name: validatedName, references }
 }
 
 
@@ -104,14 +105,33 @@ function parseBookName(query: string) {
     let bookName = ""
     let chapterBeginIndex = 0
 
-    for (let i = 0; i < query.length; i++) {
+    //--- parse ordinal
+    let ordinal = ""
+    let nameBeginIndex = 0
+
+    const ordinals = [
+        { text: "first",  properOrd: "1", endPosition: 5 },
+        { text: "second", properOrd: "2", endPosition: 6 },
+        { text: "third",  properOrd: "3", endPosition: 5 },
+        { text: "1st",    properOrd: "1", endPosition: 3 },
+        { text: "2nd",    properOrd: "2", endPosition: 3 },
+        { text: "3rd",    properOrd: "3", endPosition: 3 },
+        { text: "1",      properOrd: "1", endPosition: 1 },
+        { text: "2",      properOrd: "2", endPosition: 1 },
+        { text: "3",      properOrd: "3", endPosition: 1 },
+    ]
+
+    for (const ord of ordinals) {
+        if (query.toLowerCase().startsWith(ord.text)) {
+            nameBeginIndex = ord.endPosition
+            bookName += `${ord.properOrd} `
+            break
+        }
+    }
+
+    for (let i = nameBeginIndex; i < query.length; i++) {
         const char = query[i]
         if (char == " ") {
-            continue
-        }
-
-        if (i === 0 && isValidPositiveNumber(char)) {
-            bookName += `${char} `
             continue
         }
 
@@ -131,14 +151,23 @@ function parseBookName(query: string) {
     }
 }
 
-function bookNameIsValid(bookName: string) {
+function validateBookName(bookName: string) {
     for (const { name, aliases } of books) {
-        if (name == bookName || aliases.includes(bookName)) {
-            return true
+        if (name.toLowerCase() === bookName.toLowerCase()) {
+            return name
+        }
+
+        const aliasName = aliases.find(alias =>
+            bookName.toLowerCase() ===
+            alias.toLowerCase()
+        )
+
+        if (aliasName !== undefined) {
+            return name
         }
     }
 
-    return false
+    return null
 }
 
 
@@ -308,6 +337,6 @@ export const Testing = {
     parseReferenceWithChapterPriority,
     parseReferences,
     parseVerseRange,
-    bookNameIsValid,
+    validateBookName,
     parseBook,
 }

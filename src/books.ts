@@ -60,9 +60,9 @@ export const books = [
     { "name": "James", "aliases": ["Ja","Jas"]},
     { "name": "1 Peter", "aliases": ["1 Pt","1 Pet","1st Pet","1st Peter","First Peter"]},
     { "name": "2 Peter", "aliases": ["2 Pt","2 Pet","2nd Pet","2nd Peter","Second Peter"]},
-    { "name": "1 John", "aliases": ["1 Jn","1st John","First John"]},
-    { "name": "2 John", "aliases": ["2 Jn","2nd John","Second John"]},
-    { "name": "3 John", "aliases": ["3 Jn","3rd John","Third John"]},
+    { "name": "1 John", "aliases": ["1 Jn", "1st Jn", "1st John","First John"]},
+    { "name": "2 John", "aliases": ["2 Jn", "2nd Jn", "2nd John","Second John"]},
+    { "name": "3 John", "aliases": ["3 Jn", "3rd Jn", "3rd John","Third John"]},
     { "name": "Jude", "aliases": []},
     { "name": "Revelation", "aliases": ["Rv","Rev"]}
 ]

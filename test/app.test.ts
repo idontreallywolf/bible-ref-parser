@@ -226,24 +226,24 @@ test('parseReferences() should return a list of correct reference objects, based
 })
 
 
-test('bookNameIsValid() should return false for books that are not in the list', async (t) => {
+test('validateBookName() should return false for books that are not in the list', async (t) => {
     const books = [
         "kebab", "pasta",
         "idk", "jenesis",
-        "jon", "peer"
+        "peer"
     ]
 
     for (const book of books) {
-        expect(Testing.bookNameIsValid(book)).toBe(false)
+        expect(Testing.validateBookName(book)).toBe(null)
     }
 })
 
 
-test('bookNameIsValid() should return true for books that are in the list', async (t) => {
+test('validateBookName() should return true for books that are in the list', async (t) => {
     for (const { name, aliases } of books) {
-        expect(Testing.bookNameIsValid(name)).toBe(true)
+        expect(Testing.validateBookName(name)).toEqual(name)
         for (const alias of aliases) {
-            expect(Testing.bookNameIsValid(alias)).toBe(true)
+            expect(Testing.validateBookName(alias)).toEqual(name)
         }
     }
 })
@@ -258,10 +258,24 @@ test('parseBook() should return the expected bookData', async (t) => {
             ]
         }},
 
-        { input: "III John 1", expected: {
-            name: "3 John",
-            references: []
-        }}
+        { input: "III John 1", expected: { name: "3 John", references: [] }},
+
+        { input: "Gen 1", expected: { name: "Genesis", references: [] } },
+
+        { input: "2 Pt 1:2", expected: { name: "2 Peter", references: [
+            { chapter: 1, verses: [{ from: 2, to: undefined }]}
+        ] } },
+
+        { input: "2 Pet 1:2", expected: { name: "2 Peter", references: [
+            { chapter: 1, verses: [{ from: 2, to: undefined }]}
+        ] } },
+
+        { input: "2nd Peter", expected: { name: "2 Peter", references: [] } },
+        { input: "First John", expected: { name: "1 John", references: [] } },
+        { input: "1 John", expected: { name: "1 John", references: [] } },
+        { input: "1st John", expected: { name: "1 John", references: [] } },
+        { input: "first JOHN", expected: { name: "1 John", references: [] } },
+        { input: "2ndtim", expected: { name: "2 Timothy", references: [] } },
     ]
 
     for (const { input, expected } of cases) {
