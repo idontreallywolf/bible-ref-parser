@@ -105,8 +105,6 @@ function parseBookName(query: string) {
     let bookName = ""
     let chapterBeginIndex = 0
 
-    //--- parse ordinal
-    let ordinal = ""
     let nameBeginIndex = 0
 
     const ordinals = [
