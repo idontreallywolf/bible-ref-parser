@@ -57,7 +57,10 @@ test('replaceRomanNumbers() should replace "I" with 1, "II" with 2 and "III" wit
         { input: "II Kings",        expected: "2 Kings" },
 
         { input: "III John",        expected: "3 John" },
-        { input: "IIJohn",          expected: "2 John" }
+        { input: "IIJohn",          expected: "2 John" },
+        { input: "Isaiah",          expected: "Isaiah" },
+        { input: "Isamuel",         expected: "1 samuel" },
+        { input: "isAmUeL",         expected: "1 sAmUeL" }
     ]
 
     for (const { input, expected } of cases) {
@@ -72,6 +75,9 @@ test('replaceRomanNumbers() should return the original string if no book number 
         { input: "Timothy",         expected: "Timothy" },
         { input: "John",            expected: "John" },
         { input: "Thessalonians",   expected: "Thessalonians" },
+        { input: "isaiah",          expected: "isaiah" },
+        { input: "isa",             expected: "isa" },
+        { input: "is",              expected: "is" },
     ]
 
     for (const { input, expected } of cases) {
@@ -276,6 +282,11 @@ test('parseBook() should return the expected bookData', async (t) => {
         { input: "1st John", expected: { name: "1 John", references: [] } },
         { input: "first JOHN", expected: { name: "1 John", references: [] } },
         { input: "2ndtim", expected: { name: "2 Timothy", references: [] } },
+        { input: "isa", expected: { name: "Isaiah", references: [] } },
+        { input: "isam", expected: { name: "1 Samuel", references: [] } },
+        { input: "Ism", expected: { name: "1 Samuel", references: [] } },
+        { input: "IIsm", expected: { name: "2 Samuel", references: [] } },
+        { input: "iSaIAH", expected: { name: "Isaiah", references: [] } },
     ]
 
     for (const { input, expected } of cases) {
