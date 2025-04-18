@@ -8,7 +8,7 @@
 ## Installation
 
 ```bash
-npm install bible-ref-parser
+npm install @idrw/bible-ref-parser
 ```
 
 ## Usage
