@@ -88,13 +88,14 @@ test('replaceRomanNumbers() should return the original string if no book number 
 
 test('parseBookName() should return the book name (including sequence nr) along with the index at which first chapter reference begins', async (t) => {
     const cases = [
-        { input: "Genesis 1:1", expected: { bookName: "Genesis", chapterBeginIndex: 8 } },
-        { input: "Genesis",     expected: { bookName: "Genesis", chapterBeginIndex: 0 } },
-        { input: "1 Peter 1:1", expected: { bookName: "1 Peter", chapterBeginIndex: 8 } },
-        { input: "1 John 1",    expected: { bookName: "1 John",  chapterBeginIndex: 7 } },
-        { input: "1 John    1", expected: { bookName: "1 John",  chapterBeginIndex: 10 } },
-        { input: "1   John  1", expected: { bookName: "1 John",  chapterBeginIndex: 10 } },
-        { input: "1John",       expected: { bookName: "1 John",  chapterBeginIndex: 0 } },
+        { input: "Genesis 1:1",     expected: { bookName: "Genesis", chapterBeginIndex: 8 } },
+        { input: "Genesis",         expected: { bookName: "Genesis", chapterBeginIndex: 0 } },
+        { input: "1 Peter 1:1",     expected: { bookName: "1 Peter", chapterBeginIndex: 8 } },
+        { input: "1 John 1",        expected: { bookName: "1 John",  chapterBeginIndex: 7 } },
+        { input: "1 John    1",     expected: { bookName: "1 John",  chapterBeginIndex: 10 } },
+        { input: "1   John  1",     expected: { bookName: "1 John",  chapterBeginIndex: 10 } },
+        { input: "1John",           expected: { bookName: "1 John",  chapterBeginIndex: 0 } },
+        { input: "Song of solomon", expected: { bookName: "Song of solomon",  chapterBeginIndex: 0 } }
     ]
 
     for (const { input, expected } of cases) {
@@ -258,35 +259,43 @@ test('validateBookName() should return true for books that are in the list', asy
 test('parseBook() should return the expected bookData', async (t) => {
     const cases = [
         { input: "1Kings1:2", expected: {
-            name: "1 Kings",
-            references: [
-                { chapter: 1, verses: [{ from: 2, to: undefined }] }
-            ]
+            book: { name: "1 Kings", references: [{ chapter: 1, verses: [{ from: 2, to: undefined }] }] },
+            error: null
+        } },
+
+        { input: "III John 1", expected: {
+            book: { name: "3 John", references: [] },
+            error: null
         }},
 
-        { input: "III John 1", expected: { name: "3 John", references: [] }},
+        { input: "Gen 1", expected: {
+            book: { name: "Genesis", references: [] },
+            error: null
+        } },
 
-        { input: "Gen 1", expected: { name: "Genesis", references: [] } },
+        { input: "2 Pt 1:2", expected: {
+            book: { name: "2 Peter", references: [{ chapter: 1, verses: [{ from: 2, to: undefined }]}] },
+            error: null
+        } },
 
-        { input: "2 Pt 1:2", expected: { name: "2 Peter", references: [
-            { chapter: 1, verses: [{ from: 2, to: undefined }]}
-        ] } },
+        { input: "2 Pet 1:2", expected: {
+            book: { name: "2 Peter", references: [{ chapter: 1, verses: [{ from: 2, to: undefined }]}] },
+            error: null
+        } },
 
-        { input: "2 Pet 1:2", expected: { name: "2 Peter", references: [
-            { chapter: 1, verses: [{ from: 2, to: undefined }]}
-        ] } },
+        { input: "2nd Peter",   expected: { book: { name: "2 Peter",   references: [] }, error: null } },
+        { input: "First John",  expected: { book: { name: "1 John",    references: [] }, error: null } },
+        { input: "1 John",      expected: { book: { name: "1 John",    references: [] }, error: null } },
+        { input: "1st John",    expected: { book: { name: "1 John",    references: [] }, error: null } },
+        { input: "first JOHN",  expected: { book: { name: "1 John",    references: [] }, error: null } },
+        { input: "2ndtim",      expected: { book: { name: "2 Timothy", references: [] }, error: null } },
+        { input: "isa",         expected: { book: { name: "Isaiah",    references: [] }, error: null } },
+        { input: "isam",        expected: { book: { name: "1 Samuel",  references: [] }, error: null } },
+        { input: "Ism",         expected: { book: { name: "1 Samuel",  references: [] }, error: null } },
+        { input: "IIsm",        expected: { book: { name: "2 Samuel",  references: [] }, error: null } },
+        { input: "iSaIAH",      expected: { book: { name: "Isaiah",    references: [] }, error: null } },
 
-        { input: "2nd Peter", expected: { name: "2 Peter", references: [] } },
-        { input: "First John", expected: { name: "1 John", references: [] } },
-        { input: "1 John", expected: { name: "1 John", references: [] } },
-        { input: "1st John", expected: { name: "1 John", references: [] } },
-        { input: "first JOHN", expected: { name: "1 John", references: [] } },
-        { input: "2ndtim", expected: { name: "2 Timothy", references: [] } },
-        { input: "isa", expected: { name: "Isaiah", references: [] } },
-        { input: "isam", expected: { name: "1 Samuel", references: [] } },
-        { input: "Ism", expected: { name: "1 Samuel", references: [] } },
-        { input: "IIsm", expected: { name: "2 Samuel", references: [] } },
-        { input: "iSaIAH", expected: { name: "Isaiah", references: [] } },
+//        { input: "! Genesis",   expected: { book: null, error: "!Genesis" } },
     ]
 
     for (const { input, expected } of cases) {
@@ -299,39 +308,52 @@ test('parseQuery() should return the expected bookData[]', async (t) => {
     const cases = [
         { 
             input: "1Kings1:2;IIIJohn1",
-            expected: [
-                {
-                    name: "1 Kings",
-                    references: [
-                        { chapter: 1, verses: [{ from: 2, to: undefined }] }
-                    ]
-                },
-                { name: "3 John", references: [] }
-            ]
+            expected: {
+                books: [
+                    {
+                        name: "1 Kings",
+                        references: [
+                            { chapter: 1, verses: [{ from: 2, to: undefined }] }
+                        ]
+                    },
+                    { name: "3 John", references: [] }
+                ],
+                errors: []
+            }
         },
 
         {
             input: "III John 1:1-2;Genesis 1:10-12",
-            expected: [
-                {
-                    name: "3 John",
-                    references: [{ chapter: 1, verses: [{ from: 1, to: 2 }] }]
-                },
-                {
-                    name: "Genesis",
-                    references: [{ chapter: 1, verses: [{ from: 10, to: 12 }] }]
-                }
-            ]
+            expected: {
+                books: [
+                    {
+                        name: "3 John",
+                        references: [{ chapter: 1, verses: [{ from: 1, to: 2 }] }]
+                    },
+                    {
+                        name: "Genesis",
+                        references: [{ chapter: 1, verses: [{ from: 10, to: 12 }] }]
+                    }
+                ],
+                errors: []
+            }
         },
 
         {
-            input: ";##;#!\"@,;Genesis 1:10-12",
-            expected: [
-                {
-                    name: "Genesis",
-                    references: [{ chapter: 1, verses: [{ from: 10, to: 12 }] }]
-                }
-            ]
+            input: ";##;#!\"@,;Genesis 1:10-12;song of solomon",
+            expected: {
+                books: [
+                    {
+                        name: "Genesis",
+                        references: [{ chapter: 1, verses: [{ from: 10, to: 12 }] }]
+                    },
+                    {
+                        name: "Song of Solomon",
+                        references: []
+                    }
+                ],
+                errors: ["##", "#!\"@,"]
+            }
         }
     ]
 
