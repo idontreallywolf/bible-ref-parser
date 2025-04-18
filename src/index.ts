@@ -170,7 +170,7 @@ function parseBookName(query: string) {
 
     for (let i = nameBeginIndex; i < query.length; i++) {
         const char = query[i]
-        if (char == " ") {
+        if (char === " " && char === bookName.charAt(bookName.length - 1)) {
             continue
         }
 
