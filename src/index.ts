@@ -72,24 +72,42 @@ function parseBook(query: string): BookData | null {
 
 
 function replaceRomanNumbers(query: string) {
-    let romanNumber = 0
-    let idx
+    const edgeCases = [
+        { words: ["isamuel", "isam", "ism"], sliceAt: 1 },
+        { words: ["isaiah",  "isa",  "is"],  sliceAt: 0 }
+    ]
 
-    for (let i = 0; i < query.length; i++) {
-        if (query[i] === "I") {
-            romanNumber += 1
-            continue
+    for (const edgeCase of edgeCases) {
+        for (const word of edgeCase.words) {
+            if (query.toLowerCase().startsWith(word)) {
+                const ordinal = edgeCase.sliceAt === 0 ? "" : "1 "
+                return `${ordinal}${query.slice(edgeCase.sliceAt)}`
+            }
         }
-
-        idx = (query[i] === " ") ? (i + 1) : i
-        break
     }
 
-    if (romanNumber === 0) {
+    let romanNumber = ""
+    let idx
+
+    const ordinals = [
+        { text: "iii", properOrd: "3", endPosition: 3 },
+        { text: "ii",  properOrd: "2", endPosition: 2 },
+        { text: "i",   properOrd: "1", endPosition: 1 },
+    ]
+
+    for (const ord of ordinals) {
+        if (query.toLowerCase().startsWith(ord.text)) {
+            idx = ord.endPosition
+            romanNumber += ord.properOrd
+            break
+        }
+    }
+
+    if (romanNumber === "") {
         return query
     }
 
-    return `${romanNumber} ${query.slice(idx)}`
+    return `${romanNumber} ${query.slice(idx).trim()}`
 }
 
 
