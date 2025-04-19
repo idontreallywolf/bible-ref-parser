@@ -2,6 +2,17 @@ import { books } from "./books.js"
 
 const QUERY_SEPARATOR = ";"
 
+export type QueryResult = {
+    books: BookData[],
+    errors: string[]
+}
+
+export type ParseBookResult = {
+    book: BookData | null,
+    error: string | null
+}
+
+
 export type BookData = {
     name: string,
     references: ChapterData[]
@@ -20,24 +31,33 @@ export type VerseRange = {
 }
 
 
-export function parseQuery(query: string): BookData[] {
+export function parseQuery(query: string): QueryResult {
     const bookQueries = splitQueryByBooks(query)
+    const queryResult: QueryResult = {
+        books: [],
+        errors: []
+    }
 
-    let bookDataList: BookData[] = []
 
     for (const bookQuery of bookQueries) {
         if (!isValidQuery(bookQuery)) {
+            queryResult.errors.push(bookQuery)
             continue
         }
 
-        const bookData = parseBook(bookQuery)
+        const parseResult = parseBook(bookQuery)
 
-        if (bookData) {
-            bookDataList.push(bookData)
+        if (parseResult.error) {
+            queryResult.errors.push(parseResult.error)
+            continue
+        }
+
+        if (parseResult.book) {
+            queryResult.books.push(parseResult.book)
         }
     }
 
-    return bookDataList
+    return queryResult
 }
 
 
@@ -55,19 +75,22 @@ function isValidPositiveNumber(n: string) {
 }
 
 
-function parseBook(query: string): BookData | null {
+function parseBook(query: string): ParseBookResult {
     query = replaceRomanNumbers(query)
 
     let { bookName, chapterBeginIndex } = parseBookName(query)
 
     const validatedName = validateBookName(bookName)
     if (!validatedName) {
-        return null
+        return { book: null, error: bookName }
     }
 
     let references = parseReferences(query.slice(chapterBeginIndex))
 
-    return { name: validatedName, references }
+    return {
+        book: { name: validatedName, references },
+        error: null
+    }
 }
 
 
@@ -147,7 +170,7 @@ function parseBookName(query: string) {
 
     for (let i = nameBeginIndex; i < query.length; i++) {
         const char = query[i]
-        if (char == " ") {
+        if (char === " " && char === bookName.charAt(bookName.length - 1)) {
             continue
         }
 

@@ -2,7 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-`bible-ref-parser` is a Node.js package that parses Bible references into structured objects. It supports complex references such as `Genesis 1:1-2; II Peter; John 1:1,3-5,8` and converts them into accessible data formats.
+A Node.js package to parses Bible references into structured objects. It supports complex references such as `Genesis 1:1-2; II Peter; John 1:1,3-5,8`.
 
 
 ## Installation
@@ -13,38 +13,73 @@ npm install @idrw/bible-ref-parser
 
 ## Usage
 
+### Example query, with errors
 ```typescript
-import { parseQuery } from 'bible-ref-parser';
+import { parseQuery } from '@idrw/bible-ref-parser';
 
-const query = "Genesis 1:1-2; II Peter; John 1:1,3-5,8";
-const result: BookData[] = parseQuery(query);
-
-console.log(result);
+const result: QueryResult = parseQuery("! pasta;RM-RF/;1John1:2,2:1;IIPeter1:1;IJohn2:4;#--324;1 kebab 2:1;'_&%\"!\"¥");
 ```
 
+```json
+{
+    "books": [
+        {
+            "name": "1 John",
+            "references": [
+                { "chapter": 1, "verses": [{ "from": 2 }] },
+                { "chapter": 2, "verses": [{ "from": 1 }] }
+            ]
+        },
+        {
+            "name": "2 Peter",
+            "references": [
+                { "chapter": 1, "verses": [{ "from": 1 }] }
+            ]
+        },
+        {
+            "name": "1 John",
+            "references": [
+                { "chapter": 2, "verses": [{ "from": 4 }] }
+            ]
+        }
+    ],
+    "errors": ["! pasta", "RM-RF/", "#--324", "1 kebab", "'_&%\"!\"¥"]
+}
 ```
-[
-    {
-        book: "Genesis",
-        references: [
-            { chapter: 1, verses: [{ from: 1, to: 2 }] }
-        ]
-    },
-    {
-        book: "2 Peter",
-        references: []
-    },
-    {
-        book: "John",
-        references: [
-            { chapter: 1, verses: [
-                { from: 1, to: undefined },
-                { from: 3, to: 5 },
-                { from: 8, to: undefined }
-            ] }
-        ]
-    }
-]
+
+### Example query, without errors
+```typescript
+import { parseQuery } from '@idrw/bible-ref-parser';
+
+const result: QueryResult = parseQuery("Genesis 1:1-2; II Peter; John 1:1,3-5,8");
+```
+
+```json
+{
+    "books": [
+        {
+            "name": "Genesis",
+            "references": [
+                { "chapter": 1, "verses": [{ "from": 1, "to": 2 }] }
+            ]
+        },
+        { "name": "2 Peter", "references": [] },
+        {
+            "name": "John",
+            "references": [
+                {
+                    "chapter": 1,
+                    "verses": [
+                        { "from": 1 },
+                        { "from": 3, "to": 5 },
+                        { "from": 8 }
+                    ]
+                }
+            ]
+        }
+    ],
+    "errors": []
+}
 ```
 
 ## Contributing
