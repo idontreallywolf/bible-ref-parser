@@ -85,11 +85,18 @@ function parseBook(query: string): ParseBookResult {
         return { book: null, error: bookName }
     }
 
-    let references = parseReferences(query.slice(chapterBeginIndex))
+    try {
+        let references = parseReferences(query.slice(chapterBeginIndex))
 
-    return {
-        book: { name: validatedName, references },
-        error: null
+        return {
+            book: { name: validatedName, references },
+            error: null
+        }
+    } catch (e) {
+        return {
+            book: null,
+            error: (e as Error).message
+        }
     }
 }
 
@@ -137,7 +144,8 @@ function replaceRomanNumbers(query: string) {
 function isValidQuery(q: string) {
     return (
         !(new RegExp("[^a-z0-9 ,–;—:-]|I{4,}", "i").test(q)) &&
-        !(new RegExp("([,:-]{2,})|(:,)|(,:)|(-:)|(:-)|(-,)|(,-)").test(q))
+        !(new RegExp("([,:;-]\\s*?){2,}").test(q)) &&
+        !(new RegExp(",\\s*(?![0-9])", "i").test(q))
     )
 }
 
@@ -168,6 +176,8 @@ function parseBookName(query: string) {
         }
     }
 
+    let chapterNumberFound = false
+
     for (let i = nameBeginIndex; i < query.length; i++) {
         const char = query[i]
         if (char === " " && char === bookName.charAt(bookName.length - 1)) {
@@ -176,6 +186,7 @@ function parseBookName(query: string) {
 
         if (char.match(new RegExp("\\d+", 'i'))) {
             chapterBeginIndex = i
+            chapterNumberFound = true
             break
         }
 
@@ -186,7 +197,9 @@ function parseBookName(query: string) {
 
     return {
         bookName,
-        chapterBeginIndex
+        chapterBeginIndex: chapterNumberFound
+            ? chapterBeginIndex
+            : query.length 
     }
 }
 
@@ -216,6 +229,28 @@ function parseReferences(query: string) {
     }
 
     return parseReferenceWithChapterPriority(query)
+}
+
+
+function queryPriorityIsByVerse(query: string) {
+    const firstCommaIndex = query.indexOf(",")
+    const firstColonIndex = query.indexOf(":")
+
+    if (firstColonIndex < 0 && firstCommaIndex < 0) {
+        return false;
+    }
+
+    if (firstCommaIndex < 0) {
+        return true
+    }
+
+    if (firstColonIndex < 0) {
+        return false
+    }
+
+    // 1, 2, 3:1, 4         — requests for chapter 1, 2, 3(v1) and 4
+    // 1:1, 2 , 3:1 , 4     — requests for chapter 1(v1, v2), 3(v1, v4)
+    return firstColonIndex < firstCommaIndex
 }
 
 
@@ -265,9 +300,11 @@ function parseReferenceWithVersePriority(query: string) {
         temp += query[i]
     }
 
-    if (temp.length > 0 && currentChapter) {
-        currentChapter.verses.push(parseVerseRange(temp))
+    if (currentChapter) {
         refs.push(currentChapter)
+        if (temp.length > 0) {
+            currentChapter.verses.push(parseVerseRange(temp))
+        }
     }
 
     return refs
@@ -291,7 +328,7 @@ function parseReferenceWithChapterPriority(query: string) {
             temp = ""
             continue
         }
-
+// John 3:16, Galatian 1
         if (char === ",") {
             if (lookingForVerse) {
                 currentChapter!.verses.push(parseVerseRange(temp))
@@ -317,31 +354,13 @@ function parseReferenceWithChapterPriority(query: string) {
         } else {
             currentChapter = { chapter: parseChapterNumber(temp), verses: [] }
         }
+    }
 
-        if (currentChapter) {
-            refs.push(currentChapter)
-        }
+    if (currentChapter) {
+        refs.push(currentChapter)
     }
 
     return refs;
-}
-
-
-function queryPriorityIsByVerse(query: string) {
-    const firstCommaIndex = query.indexOf(",")
-    const firstColonIndex = query.indexOf(":")
-
-    if (firstCommaIndex < 0) {
-        return true
-    }
-
-    if (firstColonIndex < 0) {
-        return false
-    }
-
-    // 1, 2, 3:1, 4         — requests for chapter 1, 2, 3(v1) and 4
-    // 1:1, 2 , 3:1 , 4     — requests for chapter 1(v1, v2), 3(v1, v4)
-    return firstColonIndex < firstCommaIndex
 }
 
 
