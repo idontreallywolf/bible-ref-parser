@@ -85,6 +85,8 @@ function parseBook(query: string): ParseBookResult {
         return { book: null, error: bookName }
     }
 
+    // TODO : validate chapter numbers
+
     try {
         let references = parseReferences(query.slice(chapterBeginIndex))
 
