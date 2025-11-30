@@ -89,13 +89,13 @@ test('replaceRomanNumbers() should return the original string if no book number 
 test('parseBookName() should return the book name (including sequence nr) along with the index at which first chapter reference begins', async (t) => {
     const cases = [
         { input: "Genesis 1:1",     expected: { bookName: "Genesis", chapterBeginIndex: 8 } },
-        { input: "Genesis",         expected: { bookName: "Genesis", chapterBeginIndex: 0 } },
+        { input: "Genesis",         expected: { bookName: "Genesis", chapterBeginIndex: 7 } },
         { input: "1 Peter 1:1",     expected: { bookName: "1 Peter", chapterBeginIndex: 8 } },
         { input: "1 John 1",        expected: { bookName: "1 John",  chapterBeginIndex: 7 } },
         { input: "1 John    1",     expected: { bookName: "1 John",  chapterBeginIndex: 10 } },
         { input: "1   John  1",     expected: { bookName: "1 John",  chapterBeginIndex: 10 } },
-        { input: "1John",           expected: { bookName: "1 John",  chapterBeginIndex: 0 } },
-        { input: "Song of solomon", expected: { bookName: "Song of solomon",  chapterBeginIndex: 0 } }
+        { input: "1John",           expected: { bookName: "1 John",  chapterBeginIndex: 5 } },
+        { input: "Song of solomon", expected: { bookName: "Song of solomon",  chapterBeginIndex: 15 } }
     ]
 
     for (const { input, expected } of cases) {
@@ -121,7 +121,7 @@ test('isValidQuery(q) should return true for valid queries', async (t) => {
     }
 });
 
-test('isValidQuery(q) should return false for invalid queries', async (t) => {
+test('isValidQuery(q) should return false for invalid queries', async (test) => {
     const tests = [
         "Genesis 1,,",          "Genesis 1:1--1",
         "Genesis 1::::1-2",     "Genesis 1::1--2,4",
@@ -131,11 +131,13 @@ test('isValidQuery(q) should return false for invalid queries', async (t) => {
         "Genesis 1,:,1-2,4-5",  "Genesis 1,-1-2,4-5",
         "Genesis 1,-1-2,4-5",   "John# 1:1", "Mark $1:2",
         "IIII Peter 1:1",       "!\\ _/**;:_--:;:",
-        "##", "#!\"@,",
+        "##", "#!\"@,",         "Genesis 1:2, Galatians 1:8",
+        "Genesis 1:2, Gal1:8",  "Mat 1, Gal 1",
+        "Mat 1:2, Gal 1"
     ]
 
     for (const _test of tests) {
-        expect(Testing.isValidQuery(_test)).toBe(false)
+        expect(Testing.isValidQuery(_test), `failed ${_test}`).toBe(false)
     }
 });
 
@@ -264,12 +266,12 @@ test('parseBook() should return the expected bookData', async (t) => {
         } },
 
         { input: "III John 1", expected: {
-            book: { name: "3 John", references: [] },
+            book: { name: "3 John", references: [{ chapter: 1, verses: [] }] },
             error: null
         }},
 
         { input: "Gen 1", expected: {
-            book: { name: "Genesis", references: [] },
+            book: { name: "Genesis", references: [{ chapter: 1, verses: [] }] },
             error: null
         } },
 
@@ -280,6 +282,11 @@ test('parseBook() should return the expected bookData', async (t) => {
 
         { input: "2 Pet 1:2", expected: {
             book: { name: "2 Peter", references: [{ chapter: 1, verses: [{ from: 2, to: undefined }]}] },
+            error: null
+        } },
+
+        { input: "Mark 2", expected: {
+            book: { name: "Mark", references: [{ chapter: 2, verses: []}] },
             error: null
         } },
 
@@ -316,7 +323,7 @@ test('parseQuery() should return the expected bookData[]', async (t) => {
                             { chapter: 1, verses: [{ from: 2, to: undefined }] }
                         ]
                     },
-                    { name: "3 John", references: [] }
+                    { name: "3 John", references: [{ chapter: 1, verses: [] }] }
                 ],
                 errors: []
             }
