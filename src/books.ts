@@ -38,7 +38,7 @@ export const books = [
     { "name": "Haggai", "aliases": ["Hg","Hag"]},
     { "name": "Zechariah", "aliases": ["Zc","Zech"]},
     { "name": "Malachi", "aliases": ["Mal"]},
-    { "name": "Matthew", "aliases": ["Mt","Matt"]},
+    { "name": "Matthew", "aliases": ["Mt","Mat","Mth","Matt"]},
     { "name": "Mark", "aliases": ["Mk"]},
     { "name": "Luke", "aliases": ["Lk"]},
     { "name": "John", "aliases": ["Jn"]},
