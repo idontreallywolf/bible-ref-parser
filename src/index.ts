@@ -62,10 +62,37 @@ export function parseQuery(query: string): QueryResult {
 
 
 function splitQueryByBooks(query: string) {
-    return query
+    const queryParts = query
         .split(QUERY_SEPARATOR)
         .map(qry => qry.trim())
         .filter(qry => qry.length !== 0)
+
+    const result: string[] = []
+    let lastBookName = ""
+
+    for (const queryPart of queryParts) {
+        const part = queryPart.trim()
+        if (part.length === 0) { continue }
+
+        // Detect "<book> ch:vs" or "<n> <book> ch:vs"
+        if (/^\d*\s*[a-zA-Z]/.test(part)) {
+            const chapIdx = part.search(/\d+\s*:/)
+            lastBookName = chapIdx > 0 ? part.slice(0, chapIdx).trim() : part
+            result.push(part)
+            continue
+        }
+
+        // deal with "4:10" from:
+        // query "book 3:16; 4:10"
+        //                  ^--^
+        if (lastBookName) {
+            result.push(`${lastBookName} ${part}`)
+        } else {
+            result.push(part)
+        }
+    }
+
+    return result
 }
 
 

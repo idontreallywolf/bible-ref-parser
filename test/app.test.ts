@@ -23,6 +23,40 @@ test('splitQueryByBooks() should return a list of propertly split queries', asyn
 })
 
 
+test('splitQueryByBooks() should inherit book name for chapter-only continuations', async (t) => {
+    const cases = [
+        {
+            input: "John 3:16;4:10",
+            expected: ["John 3:16", "John 4:10"]
+        },
+        {
+            input: "1 John 3:16; 4:10",
+            expected: ["1 John 3:16", "1 John 4:10"]
+        },
+        {
+            input: "4:10; John 3:16",
+            expected: ["4:10", "John 3:16"]
+        },
+        {
+            input: "1 John 3:16; 4:10; 2 Peter 2:1",
+            expected: ["1 John 3:16", "1 John 4:10", "2 Peter 2:1"]
+        },
+        {
+            input: "1 John 3:16; 4:10; 2:5; 2 Peter 2:1",
+            expected: ["1 John 3:16", "1 John 4:10", "1 John 2:5", "2 Peter 2:1"]
+        },
+        {
+            input: "Mat 6:14; 7:1,3,5; John 3:16,18",
+            expected: ["Mat 6:14", "Mat 7:1,3,5", "John 3:16,18"]
+        },
+    ]
+
+    for (const { input, expected } of cases) {
+        expect(Testing.splitQueryByBooks(input)).toStrictEqual(expected)
+    }
+})
+
+
 test('isValidPositiveNumber() should return true for any non-0 positive integer, in a string', async (t) => {
     for (const i of ["1","2","10","15","100","150"]) {
         expect(Testing.isValidPositiveNumber(i)).toBe(true)
