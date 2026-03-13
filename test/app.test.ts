@@ -395,6 +395,19 @@ test('parseQuery() should return the expected bookData[]', async (t) => {
                 ],
                 errors: ["##", "#!\"@,"]
             }
+        },
+
+        {
+            input: "Mat 6:14; John 3:16; 4:10; II Peter 1:2",
+            expected: {
+                books: [
+                    { name: "Matthew", references: [{ chapter: 6, verses: [{from: 14, to: undefined}] }] },
+                    { name: "John", references: [{ chapter: 3, verses: [{from: 16, to: undefined}] }] },
+                    { name: "John", references: [{ chapter: 4, verses: [{from: 10, to: undefined}] }] },
+                    { name: "2 Peter", references: [{ chapter: 1, verses: [{from: 2, to: undefined}] }] },
+                ],
+                errors: []
+            }
         }
     ]
 
