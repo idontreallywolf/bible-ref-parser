@@ -1,4 +1,4 @@
-import { books } from "./books.js"
+import { bookHasOneChapter, books } from "./books.js"
 
 const QUERY_SEPARATOR = ";"
 
@@ -9,7 +9,7 @@ export type QueryResult = {
 
 export type ParseBookResult = {
     book: BookData | null,
-    error: string | null
+    errors: string[] | null
 }
 
 
@@ -38,7 +38,6 @@ export function parseQuery(query: string): QueryResult {
         errors: []
     }
 
-
     for (const bookQuery of bookQueries) {
         if (!isValidQuery(bookQuery)) {
             queryResult.errors.push(bookQuery)
@@ -47,13 +46,12 @@ export function parseQuery(query: string): QueryResult {
 
         const parseResult = parseBook(bookQuery)
 
-        if (parseResult.error) {
-            queryResult.errors.push(parseResult.error)
-            continue
-        }
-
         if (parseResult.book) {
             queryResult.books.push(parseResult.book)
+        }
+
+        if (parseResult.errors) {
+            queryResult.errors.push(...parseResult.errors)
         }
     }
 
@@ -68,16 +66,50 @@ function splitQueryByBooks(query: string) {
         .filter(qry => qry.length !== 0)
 
     const result: string[] = []
+
     let lastBookName = ""
+    let lastBookHasOneChapter = false
 
     for (const queryPart of queryParts) {
         const part = queryPart.trim()
         if (part.length === 0) { continue }
 
-        // Detect "<book> ch:vs" or "<n> <book> ch:vs"
-        if (/^\d*\s*[a-zA-Z]/.test(part)) {
-            const chapIdx = part.search(/\d+\s*:/)
-            lastBookName = chapIdx > 0 ? part.slice(0, chapIdx).trim() : part
+        // Detect "<book>" or "<n> <book>"
+        const _bookNameFromPart = part.match(/^\d*\s*[a-zA-Z]+/)
+        if (_bookNameFromPart !== null) {
+            lastBookName = _bookNameFromPart[0]
+
+            const refPart = part
+                .slice(lastBookName.length)
+                .trim()
+
+            if (refPart.length === 0) {
+                result.push(part)
+                continue
+            }
+
+            lastBookHasOneChapter = bookHasOneChapter(lastBookName)
+
+            if (lastBookHasOneChapter) {
+                if (refPart.includes(":")) {
+                    result.push(part)
+                    continue
+                }
+
+                result.push(`${lastBookName} 1:${refPart}`)
+                continue
+            }
+
+            // Handle case where query refers to chapter range
+            // e.g: "John 1-2" means john ch 1 and ch 2
+            const rangeMarkerIndex = refPart.indexOf("-")
+            const hasChapterRangeIndicator = rangeMarkerIndex !== -1
+
+            if (hasChapterRangeIndicator && !refPart.includes(":")) {
+                result.push(`${lastBookName} ${refPart.replace("-", ",")}`)
+                continue
+            }
+
             result.push(part)
             continue
         }
@@ -85,11 +117,32 @@ function splitQueryByBooks(query: string) {
         // deal with "4:10" from:
         // query "book 3:16; 4:10"
         //                  ^--^
-        if (lastBookName) {
-            result.push(`${lastBookName} ${part}`)
-        } else {
+        if (!lastBookName) {
             result.push(part)
+            continue
         }
+
+        let fixedPart = part
+
+        if (lastBookHasOneChapter) {
+            fixedPart = fixedPart.includes(":")
+                ? fixedPart
+                : `1:${fixedPart}`
+
+            result.push(`${lastBookName} ${fixedPart}`)
+            continue
+        }
+
+        // Handle case where query refers to chapter range
+        // e.g: "John 1-2" means john ch 1 and ch 2
+        const rangeMarkerIndex = fixedPart.indexOf("-")
+        const hasChapterRangeIndicator = rangeMarkerIndex !== -1
+
+        if (hasChapterRangeIndicator && !fixedPart.includes(":")) {
+            fixedPart = fixedPart.replace("-", ",")
+        }
+
+        result.push(`${lastBookName} ${fixedPart}`)
     }
 
     return result
@@ -109,22 +162,42 @@ function parseBook(query: string): ParseBookResult {
 
     const validatedName = validateBookName(bookName)
     if (!validatedName) {
-        return { book: null, error: bookName }
+        return { book: null, errors: [bookName] }
     }
 
-    // TODO : validate chapter numbers
+    // if only book name is given, i.e: "Genesis;"
+    // then assume reference to the first chapter
+    // with no specific range
+    if (chapterBeginIndex === query.length) {
+        return {
+            book: { name: validatedName, references: [{ chapter: 1, verses: [] }]},
+            errors: []
+        }
+    }
 
     try {
         let references = parseReferences(query.slice(chapterBeginIndex))
 
+        const referenceErrors: string[] = []
+
+        for (let i = 0; i < references.length; i++) {
+            const reference = references[i]
+            if (!validateChapterNumber(validatedName, reference.chapter )) {
+                references.splice(i, 1)
+                referenceErrors.push(`'${reference.chapter}' is not a valid chapter of '${validatedName}'`)
+            }
+        }
+
         return {
-            book: { name: validatedName, references },
-            error: null
+            book: references.length > 0 
+                ? { name: validatedName, references }
+                : null,
+            errors: referenceErrors
         }
     } catch (e) {
         return {
             book: null,
-            error: (e as Error).message
+            errors: [(e as Error).message]
         }
     }
 }
@@ -172,9 +245,12 @@ function replaceRomanNumbers(query: string) {
 
 function isValidQuery(q: string) {
     return (
+        // Test for invalid character & book nr
         !(new RegExp("[^a-z0-9 ,–;—:-]|I{4,}", "i").test(q)) &&
+        // Test for double symbols ",, :: --"
         !(new RegExp("([,:;-]\\s*?){2,}").test(q)) &&
-        !(new RegExp(",\\s*(?![0-9])", "i").test(q))
+        // test for "," followed by anything other than space or 0-9 digit
+        !(new RegExp(",\\s*(?![ 0-9])", "i").test(q))
     )
 }
 
@@ -251,6 +327,16 @@ function validateBookName(bookName: string) {
     return null
 }
 
+function validateChapterNumber(bookName: string, chapter: number) {
+    const book = books.find(b => b.name === bookName)!
+
+    if (chapter >= 1 && chapter <= book.chapters) {
+        return true
+    }
+
+    return false
+}
+
 
 function parseReferences(query: string) {
     if (queryPriorityIsByVerse(query)) {
@@ -264,18 +350,12 @@ function parseReferences(query: string) {
 function queryPriorityIsByVerse(query: string) {
     const firstCommaIndex = query.indexOf(",")
     const firstColonIndex = query.indexOf(":")
+    const a = firstColonIndex < 0
+    const b = firstCommaIndex < 0
 
-    if (firstColonIndex < 0 && firstCommaIndex < 0) {
-        return false;
-    }
-
-    if (firstCommaIndex < 0) {
-        return true
-    }
-
-    if (firstColonIndex < 0) {
-        return false
-    }
+    if (a && b) { return false }
+    if (b) { return true }
+    if (a) { return false }
 
     // 1, 2, 3:1, 4         — requests for chapter 1, 2, 3(v1) and 4
     // 1:1, 2 , 3:1 , 4     — requests for chapter 1(v1, v2), 3(v1, v4)
