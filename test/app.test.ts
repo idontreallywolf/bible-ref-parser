@@ -7,10 +7,106 @@ import {
 
 import { books } from '../src/books'
 
+test('prependFirstChapterRef() should add "1:" prefix when no colon exists', (t) => {
+    const cases = [
+        { input: "1",        expected: "1:1" },
+        { input: "5",        expected: "1:5" },
+        { input: "10",       expected: "1:10" },
+        { input: "1,2",      expected: "1:1,2" },
+        { input: "1-3",      expected: "1:1-3" },
+        { input: "1,3,5",    expected: "1:1,3,5" },
+    ]
+
+    for (const { input, expected } of cases) {
+        expect(Testing.prependFirstChapterRef(input)).toBe(expected)
+    }
+})
+
+test('prependFirstChapterRef() should not modify input when colon already exists', (t) => {
+    const cases = [
+        { input: "1:1",      expected: "1:1" },
+        { input: "1:5",      expected: "1:5" },
+        { input: "1:1-2",    expected: "1:1-2" },
+        { input: "1:1,3,5",  expected: "1:1,3,5" },
+    ]
+
+    for (const { input, expected } of cases) {
+        expect(Testing.prependFirstChapterRef(input)).toBe(expected)
+    }
+})
+
+
+test('normalizeChapterRange() should replace "-" with "," when no colon exists', (t) => {
+    const cases = [
+        { input: "1-2",      expected: "1,2" },
+        { input: "1-5",      expected: "1,5" },
+        { input: "1-2-3",    expected: "1,2-3" }, // only first - replaced
+        { input: "10-20",    expected: "10,20" },
+    ]
+
+    for (const { input, expected } of cases) {
+        expect(Testing.normalizeChapterRange(input)).toBe(expected)
+    }
+})
+
+
+test('normalizeChapterRange() should not modify input when colon exists', (t) => {
+    const cases = [
+        { input: "1:2-3",    expected: "1:2-3" },
+        { input: "1:1-2",    expected: "1:1-2" },
+        { input: "1:2,3:4",  expected: "1:2,3:4" },
+    ]
+
+    for (const { input, expected } of cases) {
+        expect(Testing.normalizeChapterRange(input)).toBe(expected)
+    }
+})
+
+
+test('normalizeChapterRange() should pass through input unchanged when no range marker', (t) => {
+    const cases = [
+        { input: "1",        expected: "1" },
+        { input: "1:1",      expected: "1:1" },
+        { input: "1,2,3",    expected: "1,2,3" },
+    ]
+
+    for (const { input, expected } of cases) {
+        expect(Testing.normalizeChapterRange(input)).toBe(expected)
+    }
+})
+
+
+test('splitQueryByBooks() handles single-chapter book with multiple formats', (t) => {
+    const cases = [
+        { input: "Jude 1-3",     expected: ["Jude 1:1-3"] },
+        { input: "Jude 1,3,5",   expected: ["Jude 1:1,3,5"] },
+        { input: "Jude 5; 10",   expected: ["Jude 1:5", "Jude 1:10"] },
+    ]
+
+    for (const { input, expected } of cases) {
+        expect(Testing.splitQueryByBooks(input)).toStrictEqual(expected)
+    }
+})
+
+
+test('splitQueryByBooks() handles multi-chapter book with chapter ranges', (t) => {
+    const cases = [
+        { input: "John 1-2",       expected: ["John 1,2"] },
+        { input: "John 1-3; 5-7",  expected: ["John 1,3", "John 5,7"] },
+    ]
+
+    for (const { input, expected } of cases) {
+        expect(Testing.splitQueryByBooks(input)).toStrictEqual(expected)
+    }
+})
+
 
 test('splitQueryByBooks() should return a list of propertly split queries', async (t) => {
     const cases = [
-        { input: "Genesis 1:1;    Luke 10:2-4   ", expected: ["Genesis 1:1", "Luke 10:2-4"] },
+        {
+            input: "Genesis 1:1;    Luke 10:2-4   ",
+            expected: ["Genesis 1:1", "Luke 10:2-4"]
+        },
         {
             input: "Genesis 1:1;Luke 10:2-4 ;Mark 3:1-2,4:2;Matthew 6:7",
             expected: ["Genesis 1:1", "Luke 10:2-4", "Mark 3:1-2,4:2", "Matthew 6:7"]

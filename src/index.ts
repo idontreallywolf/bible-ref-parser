@@ -75,9 +75,9 @@ function splitQueryByBooks(query: string) {
         if (part.length === 0) { continue }
 
         // Detect "<book>" or "<n> <book>"
-        const _bookNameFromPart = part.match(/^\d*\s*[a-zA-Z]+/)
-        if (_bookNameFromPart !== null) {
-            lastBookName = _bookNameFromPart[0]
+        const bookMatch = part.match(/^\d*\s*[a-zA-Z]+/)
+        if (bookMatch !== null) {
+            lastBookName = bookMatch[0]
 
             const refPart = part
                 .slice(lastBookName.length)
@@ -90,62 +90,44 @@ function splitQueryByBooks(query: string) {
 
             lastBookHasOneChapter = bookHasOneChapter(lastBookName)
 
-            if (lastBookHasOneChapter) {
-                if (refPart.includes(":")) {
-                    result.push(part)
-                    continue
-                }
+            const normalizedRef = lastBookHasOneChapter
+                ? prependFirstChapterRef(refPart)
+                : normalizeChapterRange(refPart)
 
-                result.push(`${lastBookName} 1:${refPart}`)
-                continue
-            }
-
-            // Handle case where query refers to chapter range
-            // e.g: "John 1-2" means john ch 1 and ch 2
-            const rangeMarkerIndex = refPart.indexOf("-")
-            const hasChapterRangeIndicator = rangeMarkerIndex !== -1
-
-            if (hasChapterRangeIndicator && !refPart.includes(":")) {
-                result.push(`${lastBookName} ${refPart.replace("-", ",")}`)
-                continue
-            }
-
-            result.push(part)
+            result.push(`${lastBookName} ${normalizedRef}`)
             continue
         }
 
-        // deal with "4:10" from:
-        // query "book 3:16; 4:10"
-        //                  ^--^
         if (!lastBookName) {
             result.push(part)
             continue
         }
+        
+        // handle follow-up refs
+        // e.g: "book 3:16; 4:10"
+        //                  ^--^
+        const normalizedRef = lastBookHasOneChapter
+            ? prependFirstChapterRef(part)
+            : normalizeChapterRange(part)
 
-        let fixedPart = part
-
-        if (lastBookHasOneChapter) {
-            fixedPart = fixedPart.includes(":")
-                ? fixedPart
-                : `1:${fixedPart}`
-
-            result.push(`${lastBookName} ${fixedPart}`)
-            continue
-        }
-
-        // Handle case where query refers to chapter range
-        // e.g: "John 1-2" means john ch 1 and ch 2
-        const rangeMarkerIndex = fixedPart.indexOf("-")
-        const hasChapterRangeIndicator = rangeMarkerIndex !== -1
-
-        if (hasChapterRangeIndicator && !fixedPart.includes(":")) {
-            fixedPart = fixedPart.replace("-", ",")
-        }
-
-        result.push(`${lastBookName} ${fixedPart}`)
+        result.push(`${lastBookName} ${normalizedRef}`)
     }
 
     return result
+}
+
+
+function prependFirstChapterRef(ref: string): string {
+    return ref.includes(":") ? ref : `1:${ref}`
+}
+
+
+function normalizeChapterRange(ref: string): string {
+    const hasRangeMarker = ref.includes("-")
+    const hasVerseMarker = ref.includes(":")
+    return (hasRangeMarker && !hasVerseMarker)
+        ? ref.replace("-", ",")
+        : ref
 }
 
 
@@ -494,6 +476,8 @@ function parseVerseRange(rangeString: string): VerseRange {
 }
 
 export const Testing = {
+    normalizeChapterRange,
+    prependFirstChapterRef,
     isValidPositiveNumber,
     isValidQuery,
     splitQueryByBooks,
